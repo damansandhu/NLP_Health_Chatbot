@@ -1,43 +1,29 @@
+import nltk
 import streamlit as st
-import pandas as pd
+from textblob import TextBlob
 from chatterbot import ChatBot
-from chatterbot.trainers import ListTrainer
-import os
-import pickle
 
-# Cache for chatbot
-@st.cache_resource
-def get_trained_chatbot():
-    if os.path.exists("chatbot.pkl"):
-        with open("chatbot.pkl", "rb") as f:
-            return pickle.load(f)
-    
-    chatbot = ChatBot("HealthBot")
-    trainer = ListTrainer(chatbot)
+# Download required NLTK data
+nltk.download('punkt')
+nltk.download('stopwords')
 
-    # Load your dataset
-    df = pd.read_csv("medquad.csv")  # Make sure this file is in your repo
-
-    # Train the bot on the QA pairs
-    qa_pairs = []
-    for _, row in df.iterrows():
-        qa_pairs.append(str(row['question']))
-        qa_pairs.append(str(row['answer']))
-
-    trainer.train(qa_pairs)
-
-    with open("chatbot.pkl", "wb") as f:
-        pickle.dump(chatbot, f)
-
-    return chatbot
+# Load the pre-trained chatbot from the SQLite database
+chatbot = ChatBot(
+    "HealthBot",
+    storage_adapter="chatterbot.storage.SQLStorageAdapter",
+    database_uri="sqlite:///database.sqlite3",
+    logic_adapters=["chatterbot.logic.BestMatch"]
+)
 
 # Streamlit UI
-st.title("🩺 NLP Health Chatbot")
-st.markdown("Ask a health-related question:")
-
-user_input = st.text_input("You:")
+st.title("Health & Wellness Chatbot (MedQuAD Powered)")
+user_input = st.text_input("Ask a health-related question:")
 
 if user_input:
-    bot = get_trained_chatbot()
-    response = bot.get_response(user_input)
-    st.write(f"**HealthBot:** {response}")
+    sentiment = TextBlob(user_input).sentiment
+    response = chatbot.get_response(user_input)
+
+    if sentiment.polarity < -0.5:
+        st.write("I'm sorry you're feeling down. Here's what I found:")
+
+    st.write(str(response))
