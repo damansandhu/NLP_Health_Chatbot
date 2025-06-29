@@ -1,6 +1,6 @@
 pandas
 nltk
-spacy==3.8.7
+spacy==2.1.9
 textblob
 chatterbot==1.0.5
 chatterbot_corpus
