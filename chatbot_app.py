@@ -5,10 +5,18 @@ import streamlit as st
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from sentence_transformers import SentenceTransformer, util
+from nltk.data import load
 
-# Point NLTK to the custom nltk_data folder
+# Define the path to your custom nltk_data folder
 nltk_data_path = os.path.join(os.path.dirname(__file__), "nltk_data")
 nltk.data.path.append(nltk_data_path)
+
+# Explicitly load English stopwords and punkt tokenizer from your custom path
+stopwords_path = os.path.join(nltk_data_path, "corpora", "stopwords")
+stop_words = set(stopwords.words('english'))
+
+punkt_path = os.path.join(nltk_data_path, "tokenizers", "punkt", "english.pickle")
+tokenizer = load(punkt_path)
 
 # Load dataset
 df = pd.read_csv("medquad.csv")
@@ -16,9 +24,8 @@ questions = df['question'].fillna('').astype(str).tolist()
 answers = df['answer'].fillna('').astype(str).tolist()
 
 # Preprocess text
-stop_words = set(stopwords.words('english'))
 def preprocess(text):
-    tokens = word_tokenize(text.lower())
+    tokens = tokenizer.tokenize(text.lower())  # using the loaded tokenizer
     return ' '.join([word for word in tokens if word.isalpha() and word not in stop_words])
 
 preprocessed_questions = [preprocess(q) for q in questions]
