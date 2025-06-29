@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import nltk
 import streamlit as st
@@ -6,9 +7,9 @@ from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# Download NLTK resources
-nltk.download('punkt')
-nltk.download('stopwords')
+# Point NLTK to the custom nltk_data folder
+nltk_data_path = os.path.join(os.path.dirname(__file__), "nltk_data")
+nltk.data.path.append(nltk_data_path)
 
 # Load QA dataset
 df = pd.read_csv("medquad.csv")
@@ -41,4 +42,3 @@ if user_input:
 
     st.markdown(f"**Closest Match:** {best_match}")
     st.write(f"**Answer:** {best_answer}")
-
