@@ -1,8 +1,6 @@
+streamlit
 pandas
-spacy==3.8.7
-textblob
-scikit-learn
-nltk==3.8.1
-streamlit==1.46.1
+nltk
 sentence-transformers
 torch
+scikit-learn
