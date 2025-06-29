@@ -3,3 +3,4 @@ nltk
 spacy==3.8.7
 textblob
 streamlit
+scikit-learn
