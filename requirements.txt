@@ -1,7 +1,6 @@
 pandas
 nltk
-spacy
+spacy>=3.7.4
 textblob
-chatterbot==1.0.5
-chatterbot_corpus
 streamlit
+scikit-learn
