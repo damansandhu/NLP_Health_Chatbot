@@ -4,3 +4,5 @@ textblob
 scikit-learn
 nltk==3.8.1
 streamlit==1.46.1
+sentence-transformers
+torch
