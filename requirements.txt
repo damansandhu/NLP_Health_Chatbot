@@ -1,7 +1,7 @@
 pandas
 nltk
-spacy==2.1.9
+spacy
 textblob
-chatterbot==1.0.5
+chatterbot
 chatterbot_corpus
 streamlit
