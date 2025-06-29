@@ -1,66 +1,43 @@
-import os
-import pandas as pd
-import nltk
-import spacy
 import streamlit as st
+import pandas as pd
 from chatterbot import ChatBot
 from chatterbot.trainers import ListTrainer
-from textblob import TextBlob
+import os
+import pickle
 
-# Downloads
-nltk.download('punkt')
-nltk.download('stopwords')
-
-# Load spaCy model
-try:
-    nlp = spacy.load("en_core_web_sm")
-except:
-    from spacy.cli import download
-    download("en_core_web_sm")
-    nlp = spacy.load("en_core_web_sm")
-
-# Cache training so it only runs once
+# Cache for chatbot
 @st.cache_resource
-def train_bot():
-    # Load MedQuAD dataset
-    df = pd.read_csv("medquad.csv")
+def get_trained_chatbot():
+    if os.path.exists("chatbot.pkl"):
+        with open("chatbot.pkl", "rb") as f:
+            return pickle.load(f)
+    
+    chatbot = ChatBot("HealthBot")
+    trainer = ListTrainer(chatbot)
 
-    # Flatten Q&A pairs
+    # Load your dataset
+    df = pd.read_csv("medquad.csv")  # Make sure this file is in your repo
+
+    # Train the bot on the QA pairs
     qa_pairs = []
     for _, row in df.iterrows():
-        question = str(row['question']).strip()
-        answer = str(row['answer']).strip()
-        if question and answer:
-            qa_pairs.extend([question, answer])
+        qa_pairs.append(str(row['question']))
+        qa_pairs.append(str(row['answer']))
 
-    # Initialize chatbot
-    chatbot = ChatBot(
-        'HealthBot',
-        logic_adapters=['chatterbot.logic.BestMatch'],
-        storage_adapter='chatterbot.storage.SQLStorageAdapter',
-        database_uri='sqlite:///database.sqlite3'
-    )
+    trainer.train(qa_pairs)
 
-    # Only train if DB doesn't exist
-    if not os.path.exists("database.sqlite3"):
-        trainer = ListTrainer(chatbot)
-        trainer.train(qa_pairs)
+    with open("chatbot.pkl", "wb") as f:
+        pickle.dump(chatbot, f)
 
     return chatbot
 
-chatbot = train_bot()
-
 # Streamlit UI
-st.title("💬 Health & Wellness Chatbot")
-st.markdown("Ask a health-related question based on MedQuAD data.")
+st.title("🩺 NLP Health Chatbot")
+st.markdown("Ask a health-related question:")
 
-user_input = st.text_input("🩺 Your question:")
+user_input = st.text_input("You:")
 
 if user_input:
-    sentiment = TextBlob(user_input).sentiment
-    response = chatbot.get_response(user_input)
-
-    if sentiment.polarity < -0.5:
-        st.write("😔 I'm sorry you're feeling down. Here's some help:")
-
-    st.write(f"🤖 {response}")
+    bot = get_trained_chatbot()
+    response = bot.get_response(user_input)
+    st.write(f"**HealthBot:** {response}")
